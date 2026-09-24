@@ -2,6 +2,8 @@ pipeline {
     agent any
 
     environment {
+        JAVA_HOME = "usr/lib/jvm/java-21-openjdk-amd64"
+        PATH = "/usr/lib/jvm/java-21-openjdk-amd64/bin:${env.PATH}"
         DOCKER_IMAGE = "coeturi/hello-app"
         NAMESPACE = "dev"
     }
