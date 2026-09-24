@@ -15,12 +15,7 @@ pipeline {
             }
         }
 
-        stage('Build with Maven') {
-            steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
+       
         stage('Build Docker Image') {
             steps {
                 script {
@@ -28,7 +23,18 @@ pipeline {
                     sh "docker build -t ${DOCKER_IMAGE}:${env.IMAGE_TAG} ."
                 }
             }
-        }
+stage('Build with Maven') {
+    steps {
+        sh '''
+            export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+            export PATH=$JAVA_HOME/bin:$PATH
+            echo "JAVA_HOME=$JAVA_HOME"
+            which javac; javac -version
+            mvn -version
+            mvn clean package -DskipTests
+        '''
+    }
+}        }
 
         stage('Push to Docker Hub') {
             steps {
