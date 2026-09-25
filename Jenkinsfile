@@ -50,17 +50,16 @@ pipeline {
             }
         }
 
-        stage('Deploy to K8s') {
-            steps {
-                withKubeConfig([credentialsId: 'k8s-kubeconfig']) {
-                    sh '''
-                        kubectl create deployment hello-app \
-                          --image=coeturi/hello-app:${IMAGE_TAG} \
-                          -n dev --dry-run=client -o yaml | kubectl apply -f -
-                        kubectl rollout status deployment/hello-app -n dev --timeout=60s
-                    '''
-                }
-            }
-        }
+    stage('Deploy to K8s') {
+    steps {
+        sh '''
+            kubectl create deployment hello-app \
+              --image=coeturi/hello-app:${IMAGE_TAG} \
+              -n dev --dry-run=client -o yaml | kubectl apply -f -
+            kubectl rollout status deployment/hello-app -n dev --timeout=60s
+        '''
     }
+}
+    }
+
 }
