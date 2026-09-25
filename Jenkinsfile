@@ -1,11 +1,14 @@
 pipeline {
     agent any
 
+    parameters {
+        choice(name: 'TARGET_NS', choices: ['dev', 'stage', 'release', 'prod'], description: 'Target namespace')
+    }
+
     environment {
         JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-amd64"
         PATH = "/usr/lib/jvm/java-21-openjdk-amd64/bin:${env.PATH}"
         DOCKER_IMAGE = "coeturi/hello-app"
-        NAMESPACE = "dev"
     }
 
     stages {
@@ -20,9 +23,6 @@ pipeline {
                 sh '''
                     export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
                     export PATH=$JAVA_HOME/bin:$PATH
-                    echo "JAVA_HOME=$JAVA_HOME"
-                    which javac; javac -version
-                    mvn -version
                     mvn clean package -DskipTests
                 '''
             }
@@ -50,16 +50,16 @@ pipeline {
             }
         }
 
-    stage('Deploy to K8s') {
-    steps {
-        sh '''
-            kubectl create deployment hello-app \
-              --image=coeturi/hello-app:${IMAGE_TAG} \
-              -n dev --dry-run=client -o yaml | kubectl apply -f -
-            kubectl rollout status deployment/hello-app -n dev --timeout=60s
-        '''
+        stage('Deploy to K8s') {
+            steps {
+                sh '''
+                    minikube image load coeturi/hello-app:${IMAGE_TAG}
+                    kubectl create deployment hello-app \
+                      --image=coeturi/hello-app:${IMAGE_TAG} \
+                      -n ${TARGET_NS} --dry-run=client -o yaml | kubectl apply -f -
+                    kubectl rollout status deployment/hello-app -n ${TARGET_NS} --timeout=120s
+                '''
+            }
+        }
     }
-}
-    }
-
 }
